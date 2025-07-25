@@ -1,23 +1,36 @@
-import { Client } from '@notionhq/client';
-import Head from 'next/head';
+// Updated Instagram Grid Widget – Supports new `ntn_` tokens (Notion API 2024+)
+// Uses fetch with Notion API v1 (no official SDK)
 
-const notion = new Client({ auth: process.env.NOTION_TOKEN });
+import Head from 'next/head';
 
 export async function getServerSideProps(context) {
   const databaseId = context.query.db;
+  const notionToken = process.env.NOTION_TOKEN;
 
   try {
-    const response = await notion.databases.query({ database_id: databaseId });
+    const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${notionToken}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
 
-    const items = response.results.map((item) => {
-      const image = item.properties['Image']?.files?.[0]?.file?.url || null;
-      const caption = item.properties['Caption']?.rich_text?.[0]?.plain_text || '';
+    const data = await response.json();
+
+    const items = data.results.map((item) => {
+      const props = item.properties;
+      const image = props['Image']?.files?.[0]?.file?.url || null;
+      const caption = props['Caption']?.rich_text?.[0]?.plain_text || '';
       return { image, caption };
     });
 
     return { props: { items } };
   } catch (error) {
-    return { props: { error: 'Failed to fetch data. Check DB ID or Token.', items: [] } };
+    console.error(error);
+    return { props: { items: [], error: 'Failed to fetch data. Check DB ID or Token.' } };
   }
 }
 

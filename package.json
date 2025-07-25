@@ -9,7 +9,6 @@
   "dependencies": {
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest",
-    "@notionhq/client": "^2.2.4"
+    "react-dom": "latest"
   }
 }
