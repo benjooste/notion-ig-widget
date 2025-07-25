@@ -1,6 +1,3 @@
-// Updated Instagram Grid Widget – Supports new `ntn_` tokens (Notion API 2024+)
-// Uses fetch with Notion API v1 (no official SDK)
-
 import Head from 'next/head';
 
 export async function getServerSideProps(context) {
@@ -19,6 +16,12 @@ export async function getServerSideProps(context) {
     });
 
     const data = await response.json();
+    console.log("🔍 Notion API response:", data);
+
+    if (!response.ok) {
+      console.error("⚠️ Notion API returned error:", data);
+      throw new Error(data.message || JSON.stringify(data));
+    }
 
     const items = data.results.map((item) => {
       const props = item.properties;
@@ -29,8 +32,8 @@ export async function getServerSideProps(context) {
 
     return { props: { items } };
   } catch (error) {
-    console.error(error);
-    return { props: { items: [], error: 'Failed to fetch data. Check DB ID or Token.' } };
+    console.error("❌ Fetch error:", error);
+    return { props: { items: [], error: error.message || 'Unknown fetch error' } };
   }
 }
 
